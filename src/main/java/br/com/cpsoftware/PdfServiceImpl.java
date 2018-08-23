@@ -9,10 +9,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import com.itextpdf.io.font.FontConstants;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
@@ -43,7 +45,7 @@ public class PdfServiceImpl extends HttpServlet {
 	}
 	
 	
-	public void generatePDF(OutputStream out){
+	private void generatePDF(OutputStream out){
 		
 	    System.out.println(objectToJson(createDummyData()));
 		
@@ -69,7 +71,7 @@ public class PdfServiceImpl extends HttpServlet {
 			
 			document.add(p);
 			
-			process(document, (JsonArray) objectToJson(createDummyData()));
+			process(document, objectToJson(createDummyData()));
 	        /*// Create a PdfFont
 	        PdfFont font = PdfFontFactory.createFont(FontConstants.TIMES_ROMAN);
 	        // Add a Paragraph
@@ -115,17 +117,17 @@ public class PdfServiceImpl extends HttpServlet {
 	private java.util.List<Usuario> createDummyData() {
 		java.util.List<Usuario> usuarios = new ArrayList<>();
 		
-		usuarios.add(new Usuario(1l, "Michael", 12345d));
-		usuarios.add(new Usuario(2l, "Jailson", 56789d));
-		usuarios.add(new Usuario(3l, "Flavio", 148602d));
+		usuarios.add(new Usuario(1L, "Michael", 12345d, new Tipo("TipoAAA", 101L)));
+		usuarios.add(new Usuario(2L, "Jailson", 56789d, new Tipo("TipoBBB", 202L)));
+		usuarios.add(new Usuario(3L, "Flavio", 148602d, new Tipo("TipoCCC", 303L)));
 		
 		return usuarios;
 	}
 	
-	private JsonElement objectToJson(java.util.List<Usuario> usuarios) {
-		Gson gson = new Gson();
+	private JSONArray objectToJson(java.util.List<Usuario> usuarios) {
+        Gson gson = new Gson();
 	    
-	    return gson.toJsonTree(usuarios);
+	    return new JSONArray(usuarios);
 	}
 
 	private void addHello(Document document, String message) {
@@ -133,8 +135,36 @@ public class PdfServiceImpl extends HttpServlet {
 		Paragraph p = new Paragraph(message);
 		document.add(p);
 	}
-	
-	public static void process(Document document, JsonObject json){
+	private static void process(Document document, JSONObject json) throws JSONException{
+		for (String k : json.keySet()) {
+			Object object = json.get(k);
+			if (object instanceof JSONArray) {
+				JSONArray list = json.getJSONArray(k);
+				process(document, list);
+			} else if (object instanceof JSONObject) {
+				process(document, json.getJSONObject(k));
+			} else {
+				document.add(new Paragraph(k + " " + json.get(k)));
+			}
+
+		}
+	}
+
+	private static void process(Document document, JSONArray json) throws JSONException{
+		for (int x = 0; x < json.length(); x++) {
+			Object object = json.get(x);
+			if (object instanceof JSONArray) {
+				JSONArray list = json.getJSONArray(x);
+				process(document, list);
+			} else if (object instanceof JSONObject) {
+				process(document, json.getJSONObject(x));
+			} else {
+				document.add(new Paragraph(json.get(x).toString()));
+			}
+
+		}
+	}
+	/*private static void process(Document document, JsonObject json){
 		for (String k : json.keySet()) {
 			Object object = json.get(k);
 			if (object instanceof JsonArray) {
@@ -149,7 +179,7 @@ public class PdfServiceImpl extends HttpServlet {
 		}
 	}
 
-	public static void process(Document document, JsonArray json){
+	private static void process(Document document, JsonArray json){
 		for (int x = 0; x < json.size(); x++) {
 			Object object = json.get(x);
 			if (object instanceof JsonArray) {
@@ -162,7 +192,7 @@ public class PdfServiceImpl extends HttpServlet {
 			}
 
 		}
-	}
+	}*/
 }
 
 /*

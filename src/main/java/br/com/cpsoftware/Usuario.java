@@ -5,12 +5,13 @@ public class Usuario {
 	private Long id;
 	private String nome;
 	private double cpf;
-	
-	
-	public Usuario(Long id, String nome, double cpf) {
+	private Tipo tipo;
+
+	public Usuario(Long id, String nome, double cpf, Tipo tipo) {
 		this.id = id;
 		this.nome = nome;
 		this.cpf = cpf;
+		this.tipo = tipo;
 	}
 	
 	public Long getId() {
@@ -31,7 +32,13 @@ public class Usuario {
 	public void setCpf(double cpf) {
 		this.cpf = cpf;
 	}
-	
-	
-	
+
+
+	public Tipo getTipo() {
+		return tipo;
+	}
+
+	public void setTipo(Tipo tipo) {
+		this.tipo = tipo;
+	}
 }
