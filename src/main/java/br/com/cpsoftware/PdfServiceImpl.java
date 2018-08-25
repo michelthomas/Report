@@ -16,9 +16,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import com.itextpdf.io.font.FontConstants;
+import com.itextpdf.kernel.events.Event;
+import com.itextpdf.kernel.events.IEventHandler;
+import com.itextpdf.kernel.events.PdfDocumentEvent;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfName;
+import com.itextpdf.kernel.pdf.PdfNumber;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.List;
@@ -32,6 +38,12 @@ import com.itextpdf.layout.property.TextAlignment;
 public class PdfServiceImpl extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
+	
+	/* Constants form itext5 */
+    public static final PdfNumber INVERTEDPORTRAIT = new PdfNumber(180);
+    public static final PdfNumber LANDSCAPE = new PdfNumber(90);
+    public static final PdfNumber PORTRAIT = new PdfNumber(0);
+    public static final PdfNumber SEASCAPE = new PdfNumber(270);
 
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -47,7 +59,6 @@ public class PdfServiceImpl extends HttpServlet {
 	
 	private void generatePDF(OutputStream out){
 		
-	    System.out.println(objectToJson(createDummyData()));
 		
 		try {
 			
@@ -57,21 +68,33 @@ public class PdfServiceImpl extends HttpServlet {
 			
 			//Initialize PDF writer
 	        PdfWriter writer = new PdfWriter(out);
+	        
 	 
 	        //Initialize PDF document
 	        PdfDocument pdf = new PdfDocument(writer);
+	        
 	 
 	        // Initialize document
-	        Document document = new Document(pdf);
+	        Document document = new Document(pdf, PageSize.A3.rotate());
 	        
-	      //Add paragraph to the document
 			Paragraph p = new Paragraph("Projeto: " + "Edificio XXX")
 								.setFontSize(24f)
-								.setTextAlignment(TextAlignment.CENTER);
+								.setTextAlignment(TextAlignment.JUSTIFIED);
 			
 			document.add(p);
 			
-			process(document, objectToJson(createDummyData()));
+			Table table = new Table(4).setAutoLayout();
+			
+			String headers[] = {"Orçamentos", "Estimado", "Orçado", "Realizado"};
+			for (int i = 0; i < 4; i++) {
+				Cell cell = new Cell().setBold().setFontSize(14f);
+				table.addHeaderCell(cell.add(headers[i]));
+			}
+			
+	        for (int i = 0; i < 4; i++) {
+	            table.addCell("hi");
+	        }
+	        document.add(table);
 	        /*// Create a PdfFont
 	        PdfFont font = PdfFontFactory.createFont(FontConstants.TIMES_ROMAN);
 	        // Add a Paragraph
@@ -193,7 +216,22 @@ public class PdfServiceImpl extends HttpServlet {
 
 		}
 	}*/
+	public static class PageOrientationsEventHandler implements IEventHandler {
+	    protected PdfNumber orientation = PORTRAIT;
+
+	    public void setOrientation(PdfNumber orientation) {
+	        this.orientation = orientation;
+	    }
+
+	    @Override
+	    public void handleEvent(Event event) {
+	        PdfDocumentEvent docEvent = (PdfDocumentEvent) event;
+	        docEvent.getPage().put(PdfName.Rotate, orientation);
+	    }
+	}
 }
+
+
 
 /*
  * document.open();
