@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 
+import javax.lang.model.element.ElementKind;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -16,6 +17,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import com.itextpdf.io.font.FontConstants;
+import com.itextpdf.kernel.color.Color;
 import com.itextpdf.kernel.events.Event;
 import com.itextpdf.kernel.events.IEventHandler;
 import com.itextpdf.kernel.events.PdfDocumentEvent;
@@ -27,13 +29,17 @@ import com.itextpdf.kernel.pdf.PdfName;
 import com.itextpdf.kernel.pdf.PdfNumber;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
+import com.itextpdf.layout.border.Border;
 import com.itextpdf.layout.element.List;
 import com.itextpdf.layout.element.ListItem;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.test.annotations.WrapToTest;
 import com.itextpdf.layout.element.Cell; 
 import com.itextpdf.layout.element.Table;
+import com.itextpdf.layout.property.HorizontalAlignment;
 import com.itextpdf.layout.property.TextAlignment;
+import com.itextpdf.layout.property.UnitValue;
+import com.itextpdf.layout.property.VerticalAlignment;
 
 public class PdfServiceImpl extends HttpServlet {
 
@@ -61,40 +67,75 @@ public class PdfServiceImpl extends HttpServlet {
 		
 		
 		try {
-			
-			/*Document document = new Document();
-			document.setMargins(40, 40, 15, 10);
-			PdfWriter.getInstance(document, out);*/
-			
-			//Initialize PDF writer
 	        PdfWriter writer = new PdfWriter(out);
 	        
-	 
-	        //Initialize PDF document
 	        PdfDocument pdf = new PdfDocument(writer);
-	        
 	 
-	        // Initialize document
-	        Document document = new Document(pdf, PageSize.A3.rotate());
+	        Document document = new Document(pdf, PageSize.A1.rotate());
 	        
-			Paragraph p = new Paragraph("Projeto: " + "Edificio XXX")
-								.setFontSize(24f)
-								.setTextAlignment(TextAlignment.JUSTIFIED);
+	        Paragraph p = new Paragraph("Projeto: " + "Edificio XXX")
+					.setFontSize(24f)
+					.setTextAlignment(TextAlignment.JUSTIFIED).setMarginBottom(0);
+	        Paragraph p2 = new Paragraph("Orçamento: " + "Construção civil")
+					.setFontSize(18f)
+					.setTextAlignment(TextAlignment.JUSTIFIED).setMarginTop(0);
 			
-			document.add(p);
+	        document.add(p);
+	        document.add(p2);
+	        
+			Table table = new Table(10).setAutoLayout();
 			
-			Table table = new Table(4).setAutoLayout();
+			String headers[] = {"MATERIAIS OU SERVIÇOS", "FORNECEDOR", "CNPJ Nº", "UF", "NOTA FISCAL ", "COMPROVANTE DE PAGAMENTO 1"};
+			String subHeaders[] = {"VALOR", "DATA", "NÚMERO", "VALOR", "DATA", "TIPO"};
 			
-			String headers[] = {"Orçamentos", "Estimado", "Orçado", "Realizado"};
 			for (int i = 0; i < 4; i++) {
-				Cell cell = new Cell().setBold().setFontSize(14f);
+				Cell cell = new Cell(2, 1)
+						.setBold()
+						.setFontSize(14f)
+						.setTextAlignment(TextAlignment.CENTER).setVerticalAlignment(VerticalAlignment.MIDDLE);
 				table.addHeaderCell(cell.add(headers[i]));
 			}
 			
-	        for (int i = 0; i < 4; i++) {
-	            table.addCell("hi");
-	        }
-	        document.add(table);
+			for(int i = 4; i < 6; i++) {
+				Cell cell = new Cell(1, 3)
+						.setBold()
+						.setFontSize(14f)
+						.setTextAlignment(TextAlignment.CENTER);
+				table.addHeaderCell(cell.add(headers[i]));
+			}
+			
+			
+			for (int i = 0; i < subHeaders.length; i++) {
+				Cell cell = new Cell(1, 1)
+						.setBold()
+						.setFontSize(14f)
+						.setTextAlignment(TextAlignment.CENTER);
+				table.addHeaderCell(cell.add(subHeaders[i]));
+			}
+			
+			for (int i = 0; i < 10; i++) {
+				Cell cell = new Cell(1, 1)
+						.setTextAlignment(TextAlignment.CENTER).setFontSize(14f).setBold().setPadding(10F)
+						.setBackgroundColor(Color.LIGHT_GRAY);
+				if(i == 0) {
+					table.addCell(cell.add("Rubrica").setBorderRight(Border.NO_BORDER));
+				}else if(i== 6){
+					table.addCell(cell.add("").setBorderLeft(Border.NO_BORDER));
+				}else {
+					table.addCell(cell.add("").setBorderLeft(Border.NO_BORDER).setBorderRight(Border.NO_BORDER));
+				}
+			}
+			
+			for (int i = 0; i < 7; i++) {
+				table.addCell("money");
+			}
+			table.complete();
+			
+			table.addCell("money");
+			table.addCell("money");
+			table.addCell("money");
+			table.addCell("money");
+	        
 	        /*// Create a PdfFont
 	        PdfFont font = PdfFontFactory.createFont(FontConstants.TIMES_ROMAN);
 	        // Add a Paragraph
@@ -126,8 +167,8 @@ public class PdfServiceImpl extends HttpServlet {
 	        table.addCell(new Cell().add("Designation"));       
 	        table.addCell(new Cell().add("Programmer"));                 
 	           
-	        // Adding Table to document        
-	        document.add(table);*/                  
+	        // Adding Table to document   */     
+	        document.add(table);               
 	        
 	        //Close document
 	        document.close();
